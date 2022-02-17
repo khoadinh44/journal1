@@ -18,7 +18,7 @@ def add_noise(signal, SNRdb, case_1=False, case_2=True):
   if case_2:
     mean_N = mean_S
     std = np.sqrt(mean_S_2/np.power(10, (SNRdb/10))- np.power(mean_S, 2))
-  noise = numpy.random.normal(mean, std, size=len(signalOnly))
+  noise = np.random.normal(mean_N, std, size=len(signal))
   noise_signal = signal + noise
   return noise_signal
 
@@ -38,6 +38,18 @@ def f1_m(y_true, y_pred):
     precision = precision_m(y_true, y_pred)
     recall = recall_m(y_true, y_pred)
     return 2*((precision*recall)/(precision+recall+K.epsilon()))
+  
+def accuracy_m(y_true, y_pred):
+  correct = 0
+  total = 0
+  for i in range(len(y_true)):
+      act_label = np.argmax(y_true[i]) # act_label = 1 (index)
+      pred_label = np.argmax(y_pred[i]) # pred_label = 1 (index)
+      if(act_label == pred_label):
+          correct += 1
+      total += 1
+  accuracy = (correct/total)
+  return accuracy
 
 def signal_to_IFMs(x):
     '''
@@ -118,7 +130,7 @@ def handcrafted_features(x):
         data.append(all_i)
     return np.array(data)
 
-def concatenate_data(x=None, scale=None, window_length=400, hop_length=200, hand_fea=True, SNRdb=30):
+def concatenate_data(x=None, scale=None, window_length=400, hop_length=200, hand_fea=True, SNRdb=10):
   data = []
   for idx, i in enumerate(x):
     if len(x[i]) > 80:
@@ -140,8 +152,8 @@ def concatenate_data(x=None, scale=None, window_length=400, hop_length=200, hand
   if scale != None:
     data = scale.fit_transform(data)
   data = data.reshape((-1, ))
-#   data = add_noise(data, SNRdb)
-  data = Fourier(data)
+  data = add_noise(data, SNRdb)
+  # data = Fourier(data)
   data = divide_sample(data, window_length, hop_length)
   return data
 
